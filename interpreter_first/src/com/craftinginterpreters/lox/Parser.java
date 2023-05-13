@@ -14,6 +14,20 @@ class Parser {
         this.tokens = tokens;
     }
 
+    // parses a single expression and returns it.
+    // 추후 리펙토링 예정.
+    Expr parse() {
+        try {
+            return expression();
+        } catch (ParseError error) {
+            // parsing 과정에서 에러가 발생하면 null을 반환한다.
+            // 이는 파싱 에러를 무시하고 다음 토큰을 계속해서 파싱하도록 한다.
+            // 이렇게 하면 에러가 여러개 발생할 수 있지만, 그래도 최대한 많은 에러를 보고하도록 한다.
+            // parser promises not to crash.
+            return null;
+        }
+    }
+
     private Expr expression() {
         return equality();
     }
@@ -93,8 +107,7 @@ class Parser {
             return new Expr.Grouping(expr);
         }
 
-        // 위 if 문 중 해당하는 것 없으면 에러 뱉어야하는거 아닌가?
-        return null; // error return
+        throw error(peek(), "Expect expression.");
     }
 //
 
