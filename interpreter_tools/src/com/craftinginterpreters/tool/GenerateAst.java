@@ -7,17 +7,40 @@ import java.util.List;
 
 public class GenerateAst {
     public static void main(String[] args) throws IOException {
-        if (args.length != 1) {
-            System.err.println("Usage: generate_ast <output directory>");
-            System.exit(64);
-        }
-        String outputDir = args[0];
+//        if (args.length != 1) {
+//            System.err.println("Usage: generate_ast <output directory>");
+//            System.exit(64);
+//        }
+        String outputDir = "/Users/matthew/local/crafting/interpreter_first/src/com/craftinginterpreters/lox";
         defineAst(outputDir, "Expr", Arrays.asList(
                 "Binary   : Expr left, Token operator, Expr right",
                 "Grouping : Expr expression",
                 "Literal  : Object value",
                 "Unary    : Token operator, Expr right"
         ));
+
+        /*
+        * 8. Statements and State
+        *
+        *  * Keyword *
+        * Side Effect : Producing user-visible output
+        *            or Modifying the some state in interpreter that can be detected later.
+        *
+        * statement example : (print)
+        * state example : (var)
+        *
+        *   * Rule *
+        *   program -> statement* EOF;
+        *   statement -> exprStmt | printStmt; 이후 추가 예정
+        *   exprStmt -> expression ";";
+        *   printStmt -> "print" expression ";";
+        *
+        */
+        defineAst(outputDir, "Stmt", Arrays.asList(
+                "Expression : Expr expression",
+                "Print      : Expr expression"
+        ));
+        System.err.println("Generate AST Done.");
     }
 
     private static void defineAst(

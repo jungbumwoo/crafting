@@ -46,7 +46,6 @@ public class Lox {
             run(line);
             hadError = false;
         }
-
     }
 
     private static void run(String source) {
