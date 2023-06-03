@@ -25,6 +25,16 @@ class Parser {
         return statements;
     }
 
+    private Stmt declaration() {
+        try {
+            if (match(VAR)) return varDeclaration();
+            return statements();
+        } catch (ParseError error) {
+            synchronize();
+            return null;
+        }
+    }
+
     private Stmt statements() {
         if (match(PRINT)) return printStatement();
         return expressionStatement();
@@ -34,6 +44,18 @@ class Parser {
         Expr value = expression();
         consume(SEMICOLON, "Expect ';' after value.");
         return new Stmt.Print(value);
+    }
+
+    private Stmt varDeclaration() {
+        Token name = consume(IDENTIFIER, "Expect variable name.");
+
+        Expr initializer = null;
+        if (match(EQUAL)) {
+            initializer = expression();
+        }
+
+        consume(SEMICOLON, "Expect ';' after variable declaration.");
+        return new Stmt.Var(name, initializer);
     }
 
     private Stmt expressionStatement() {
@@ -114,7 +136,11 @@ class Parser {
         if (match(NIL)) return new Expr.Literal(null); // nil is null in Java
         if (match(NUMBER, STRING)) {
             return new Expr.Literal(previous().literal);
-        }
+        };
+        if (match(IDENTIFIER)) {
+            return new Expr.Variable(previous());
+        };
+
         if (match(LEFT_PAREN)) { // grouping
             Expr expr = expression();
             consume(RIGHT_PAREN, "Expect ')' after expression.");
