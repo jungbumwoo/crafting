@@ -16,7 +16,8 @@ public class GenerateAst {
                 "Binary   : Expr left, Token operator, Expr right",
                 "Grouping : Expr expression",
                 "Literal  : Object value",
-                "Unary    : Token operator, Expr right"
+                "Unary    : Token operator, Expr right",
+                "Variable : Token name"
         ));
 
         /*
@@ -30,15 +31,12 @@ public class GenerateAst {
         * state example : (var)
         *
         *   * Rule *
-        *   program -> statement* EOF;
-        *   statement -> exprStmt | printStmt; 이후 추가 예정
-        *   exprStmt -> expression ";";
-        *   printStmt -> "print" expression ";";
-        *
+        *   ref: Grammer.md
         */
         defineAst(outputDir, "Stmt", Arrays.asList(
                 "Expression : Expr expression",
-                "Print      : Expr expression"
+                "Print      : Expr expression",
+                "Var        : Token name, Expr initializer"
         ));
         System.err.println("Generate AST Done.");
     }
