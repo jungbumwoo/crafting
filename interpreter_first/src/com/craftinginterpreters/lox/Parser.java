@@ -20,7 +20,7 @@ class Parser {
     List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
-            statements.add(statements());
+            statements.add(declaration());
         }
         return statements;
     }
