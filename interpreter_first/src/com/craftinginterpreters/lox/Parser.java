@@ -64,6 +64,7 @@ class Parser {
         return new Stmt.Expression(expr);
     }
 
+    // expression → equality ;
     private Expr expression() {
         return equality();
     }
@@ -95,6 +96,7 @@ class Parser {
         return expr;
     }
 
+    // term → factor ( ( "-" | "+" ) factor )* ;
     private Expr term() {
         Expr expr = factor();
 
@@ -106,7 +108,7 @@ class Parser {
 
         return expr;
     }
-
+    // factor → unary ( ( "/" | "*" ) unary )* ;
     private Expr factor() {
         Expr expr = unary();
 
@@ -119,6 +121,7 @@ class Parser {
         return expr;
     }
 
+    // unary → ( "!" | "-" ) unary | primary ;
     private Expr unary() {
         if (match(BANG, MINUS)) {
             Token operator = previous();
@@ -130,6 +133,7 @@ class Parser {
         return primary();
     }
 
+    // primary → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" | IDENTIFIER ;
     private Expr primary() {
         if (match(FALSE)) return new Expr.Literal(false);
         if (match(TRUE)) return new Expr.Literal(true);

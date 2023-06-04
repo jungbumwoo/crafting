@@ -1,5 +1,3 @@
-8.2.1 
-
 *  ### `program` -> `declation* EOF` ;
     * Starting Point for the grammar
     * Represents a complete Lox script or REPL entry
@@ -28,15 +26,35 @@
 * ### `exprStmt` -> `expression ";" `;
 * ### `printStmt` -> `"print" expression ";" `;
 
-* ### `expression` -> `literal` | `unary` | `binary` | `grouping` ;
-* ### `literal` -> `NUMBER | STRING | "true" | "false" | "nil" `;
-* ### `grouping` -> `"(" expression ")" `;
-* ### `unary` -> `( "-" | "!" ) expression `;
-* ### `binary` -> `expression operator expression `;
-* ### `operator` -> `"==" | "!=" | "<" | "<=" | ">" | ">=" | "+" | "-" | "*" | "/" `;
+* ### `expression` -> `equality` ;
+* ### `equality` -> `comparison` ( ( `"!="` | `"=="` ) `comparison` )`*` ;
+* ### `comparison` -> `term` ( ( `">"` | `">="` | `"<"` | `"<="` ) `term` )`*` ;
+* ### `term` -> `factor` ( ( `"-"` | `"+"` ) `factor` )`*`;
+* ### `factor` -> `unary` ( ( `"/"` | `"*"` ) `unary` )`*`;
+* ### `unary` -> ( `"-"` | `"!"` ) `unary` |  `primary`;
+* ### `primary` -> `NUMBER` | `STRING` | `"true"` | `"false"` | `"nil"` | `"("` `expression` `")"` | `IDENTIFIER`;
 
- 
+* ### `literal` -> `NUMBER` | `STRING` | `"true"` | `"false"` | `"nil"`;
+* ### `grouping` -> `"("` `expression` `")"`;
+* ### `binary` -> `expression operator expression `;
+* ### `operator` -> `"=="` | `"!="` | `"<"` | `"<="` | `">"` | `">="` | `"+"` | `"-"` | `"*"` | `"/"`;
+
+---
+#### Grammer Ref
+-   `(a | b) c` -> `ac` or `bc` 
+    -   select one from a series of options
+
+- `*` 
+    - recursion. allow the previous symbol or group to repeat zero or more times.
+
+- `?`
+    - optional production.
 ---
 
 #### REPL: Read-Eval-Print-Loop
 * REPL은 Read-Eval-Print-Loop의 약자로, 사용자가 입력한 코드를 읽고, 평가하고, 출력하고, 다시 반복하는 것을 말한다.
+
+---
+#### Ref chapter
+8.2.1 \
+6.1
