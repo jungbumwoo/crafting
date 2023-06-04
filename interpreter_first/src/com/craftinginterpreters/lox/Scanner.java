@@ -7,6 +7,8 @@ import java.util.Map;
 
 import static com.craftinginterpreters.lox.TokenType.*;
 
+// Scanning is the process of converting a string of characters into a list of tokens.
+// Scanning = Lexing = Lexical analysis
 class Scanner {
     private static final Map<String, TokenType> keywords;
 
