@@ -23,10 +23,11 @@
     * "(" expression ")": grouping expression
 <br></br>
 
-* ### `exprStmt` -> `expression ";" `;
+* ### `exprStmt` -> `expression`;
 * ### `printStmt` -> `"print" expression ";" `;
 
-* ### `expression` -> `equality` ;
+* ### `expression` -> `assignment` ;
+* ### `assignment` -> `IDENTIFIER` `"="` `assignment` | `equality` ;
 * ### `equality` -> `comparison` ( ( `"!="` | `"=="` ) `comparison` )`*` ;
 * ### `comparison` -> `term` ( ( `">"` | `">="` | `"<"` | `"<="` ) `term` )`*` ;
 * ### `term` -> `factor` ( ( `"-"` | `"+"` ) `factor` )`*`;
