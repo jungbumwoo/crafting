@@ -8,8 +8,8 @@
     `if (a) var b = 1;` -> (X)
 <br></br>
 
-* ### `statement` -> `exprStmt` | `printStmt` ;
-
+* ### `statement` -> `exprStmt` | `printStmt` | `block`;
+* ### `"{"` `declaration*` `"}"` ;
 * ### `verDecl` -> `"var" IDENTIFIER ( "=" expression )? ";" ;`
     * The rule for declaring a variable
     * var: leading keyword.
