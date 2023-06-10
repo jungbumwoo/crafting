@@ -9,7 +9,7 @@
 <br></br>
 
 * ### `statement` -> `exprStmt` | `printStmt` | `block`;
-* ### `"{"` `declaration*` `"}"` ;
+* ### `block` -> `"{"` `declaration*` `"}"` ;
 * ### `verDecl` -> `"var" IDENTIFIER ( "=" expression )? ";" ;`
     * The rule for declaring a variable
     * var: leading keyword.
