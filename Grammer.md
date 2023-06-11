@@ -9,6 +9,7 @@
 <br></br>
 
 * ### `statement` -> `exprStmt` | `printStmt` | `block`;
+* ### `ifStmt` -> `"if"` `"("` `expression` `")"` `statement` ( `"else"` `statement` )? ;
 * ### `block` -> `"{"` `declaration*` `"}"` ;
 * ### `verDecl` -> `"var" IDENTIFIER ( "=" expression )? ";" ;`
     * The rule for declaring a variable
