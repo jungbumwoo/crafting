@@ -35,12 +35,20 @@ public class GenerateAst {
         *   * Rule *
         *   ref: Grammer.md
         */
+
+        /*
+        * 9.4 While Loops
+        *  whileStmt -> "while" "(" expression ")" statement ;
+        *  Why it’s nice to have separate base classes for expressions and statements.
+        *  The field declarations make it clear that the condition is an expression and the body is a statement.
+         * */
         defineAst(outputDir, "Stmt", Arrays.asList(
                 "Block      : List<Stmt> statements",
                 "Expression : Expr expression",
                 "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
                 "Print      : Expr expression",
-                "Var        : Token name, Expr initializer"
+                "Var        : Token name, Expr initializer",
+                "While      : Expr condition, Stmt body"
         ));
         System.err.println("Generate AST Done.");
     }
