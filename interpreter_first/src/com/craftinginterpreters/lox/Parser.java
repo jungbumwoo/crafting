@@ -1,6 +1,7 @@
 package com.craftinginterpreters.lox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.craftinginterpreters.lox.TokenType.*;
@@ -39,11 +40,61 @@ class Parser {
      statement -> exprStmt | ifStmt | printStmt | whileStmt | block ;
     */
     private Stmt statements() {
+        if (match(FOR)) return forStatement();
         if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
         if (match(WHILE)) return whileStatement();
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
         return expressionStatement();
+    }
+
+    // forStmt -> "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
+    //         -> "fot: "(" ( initializer | ";" ) condition? ";" increment? ")" body ;
+    private Stmt forStatement() {
+        consume(LEFT_PAREN, "Expect '(' after 'for'.");
+
+        Stmt initializer;
+        if (match(SEMICOLON)) {
+            initializer = null;
+        } else if (match(VAR)) {
+            initializer = varDeclaration();  // varDecl
+        } else {
+            initializer = expressionStatement();  // exprStmt
+        }
+
+        Expr condition = null;
+        if (!check(SEMICOLON)) {
+            condition = expression();
+        }
+        consume(SEMICOLON, "Expect ';' after loop condition.");
+
+        Expr increment = null;
+        if (!check(RIGHT_PAREN)) {
+            increment = expression();
+        }
+        consume(RIGHT_PAREN, "Expect ')' after for clauses.");
+        Stmt body = statements();
+
+        // Desugaring - Generate a new AST that represents the for loop as a while loop.
+        if (increment != null) {
+            body = new Stmt.Block(Arrays.asList(
+                body,
+                new Stmt.Expression(increment)
+            ));
+        }
+
+        // condition이 null인 경우, condition을 Expr.Literal(true)로 설정
+        if (condition == null) condition = new Expr.Literal(true);
+
+        // Stmt.While을 사용하여 condition과 body로 루프
+        body = new Stmt.While(condition, body);
+
+        // initializer가 있는 경우 블록으로 감싸기
+        if (initializer != null) {
+            body = new Stmt.Block(Arrays.asList(initializer, body));
+        }
+
+        return body;
     }
 
     // ifStmt -> "if" "(" expression ")" statement ( "else" statement )? ;

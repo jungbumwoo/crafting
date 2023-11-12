@@ -8,8 +8,9 @@
     `if (a) var b = 1;` -> (X)
 <br></br>
 
-* ### `statement` -> `exprStmt` | `ifStmt` | `printStmt` | `whileStmt` | `block`;
+* ### `statement` -> `exprStmt` | `forStmt` | `ifStmt` | `printStmt` | `whileStmt` | `block`;
 * ### `whileStmt` -> `"while"` `"("` `expression` `")"` `statement` ;
+* ### `forStmt` -> `"for"` `"("` ( `varDecl` | `exprStmt` | `";"` ) `expression?` `";"` `expression?` `")"` `statement` ;
 * ### `ifStmt` -> `"if"` `"("` `expression` `")"` `statement` ( `"else"` `statement` )? ;
 * ### `block` -> `"{"` `declaration*` `"}"` ;
 * ### `verDecl` -> `"var" IDENTIFIER ( "=" expression )? ";" ;`
