@@ -35,6 +35,9 @@ class Parser {
         }
     }
 
+    /*
+     statement -> exprStmt | ifStmt | printStmt | block ;
+    */
     private Stmt statements() {
         if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
@@ -42,10 +45,11 @@ class Parser {
         return expressionStatement();
     }
 
+    // ifStmt -> "if" "(" expression ")" statement ( "else" statement )? ;
     private Stmt ifStatement() {
-        consume(LEFT_PAREN, "Expect '(' after 'if'.");
+        consume(LEFT_PAREN, "Expect '(' after 'if'."); // "("
         Expr condition = expression();
-        consume(RIGHT_PAREN, "Expect ')' after if condition.");
+        consume(RIGHT_PAREN, "Expect ')' after if condition."); // ")"
 
         Stmt thenBranch = statements();
         Stmt elseBranch = null;
