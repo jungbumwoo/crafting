@@ -12,7 +12,8 @@
 * ### `function` -> `IDENTIFIER` "(" `parameters`? ")" `block` ;
 * ### `parameters` -> `IDENTIFIER ( "," IDENTIFIER )*` ;
 
-* ### `statement` -> `exprStmt` | `forStmt` | `ifStmt` | `printStmt` | `whileStmt` | `block`;
+* ### `statement` -> `exprStmt` | `forStmt` | `ifStmt` | `printStmt`| `returnStmt` | `whileStmt` | `block`;
+* ### `returnStmt` -> `"return"` `expression`? `";"` ;
 * ### `whileStmt` -> `"while"` `"("` `expression` `")"` `statement` ;
 * ### `forStmt` -> `"for"` `"("` ( `varDecl` | `exprStmt` | `";"` ) `expression?` `";"` `expression?` `")"` `statement` ;
 * ### `ifStmt` -> `"if"` `"("` `expression` `")"` `statement` ( `"else"` `statement` )? ;
@@ -68,3 +69,34 @@
 #### Ref chapter
 8.2.1 \
 6.1
+
+
+---
+
+#### Returning From calls
+```
+fun count() {
+    while (n < 100) {
+        if (n == 3) return n;
+        print n;
+        n = n + 1;
+    }
+}
+
+count(1);
+```
+
+```
+<!-- callstack of above func -->
+  Interpreter.visitReturnStmt()
+  Interpreter.visitIfStmt()
+  Interpreter.executeBlock()
+  Interpreter.visitBlockStmt()
+  Interpreter.visitWhileStmt()
+  Interpreter.executeBlock()
+  LoxFunction.call()
+  Interpreter.visitCallExpr()
+```
+
+
+
