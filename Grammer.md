@@ -2,11 +2,15 @@
     * Starting Point for the grammar
     * Represents a complete Lox script or REPL entry
 
-* ### `declaration` -> `varDecl` | `statement` ;
+* ### `declaration` -> `funDecl` | `varDecl` | `statement` ;
     * 아래 둘과 같은 케이스로 인해 구분이 필요함 \
     `if (a) print "hello";` -> (O) \
     `if (a) var b = 1;` -> (X)
 <br></br>
+
+* ### `funDecl` -> `"fun"` function ;
+* ### `function` -> `IDENTIFIER` "(" `parameters`? ")" `block` ;
+* ### `parameters` -> `IDENTIFIER ( "," IDENTIFIER )*` ;
 
 * ### `statement` -> `exprStmt` | `forStmt` | `ifStmt` | `printStmt` | `whileStmt` | `block`;
 * ### `whileStmt` -> `"while"` `"("` `expression` `")"` `statement` ;
