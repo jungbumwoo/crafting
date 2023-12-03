@@ -11,7 +11,8 @@ public class GenerateAst {
 //            System.err.println("Usage: generate_ast <output directory>");
 //            System.exit(64);
 //        }
-        String outputDir = "/Users/matt/Documents/playground/crafting/interpreter_first/src/com/craftinginterpreters/lox";
+        String outputDir = "/Users/matthew/local/crafting/interpreter_first/src/com/craftinginterpreters/lox";
+//        String outputDir = "/Users/matt/Documents/playground/crafting/interpreter_first/src/com/craftinginterpreters/lox";
         defineAst(outputDir, "Expr", Arrays.asList(
                 "Assign   : Token name, Expr value",
                 "Binary   : Expr left, Token operator, Expr right",

@@ -149,7 +149,7 @@ class Parser {
 
     private Stmt.Function function(String kind) {
         // function name
-        Token name = conusme(IDENTIFIER, "Expect " + kind + " name.");
+        Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
 
         // hadling arguments in a call
         consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
