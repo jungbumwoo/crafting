@@ -128,7 +128,7 @@ class Parser {
         }
         consume(SEMICOLON, "Expect ';' after return value.");
         return new Stmt.Return(keyword, value);
-    }z
+    }
 
     private Stmt varDeclaration() {
         Token name = consume(IDENTIFIER, "Expect variable name.");
