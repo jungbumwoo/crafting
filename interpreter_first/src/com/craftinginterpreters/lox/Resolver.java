@@ -55,6 +55,18 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void>{
         return null;
     }
 
+    @Override
+    public Void visitFunctionStmt(Stmt.Function stmt){
+        // decalre and define the name of the function in the current scope.
+        declare(stmt.name);
+        define(stmt.name);
+
+        // Unlike variables, we define the name eagerly, before resolving the function's body.
+        // This lets a function rescursively refer to itself inside its own body.
+        resolveFunction(stmt);
+        return null;
+    }
+
     void resolve(List<Stmt> statements){
         for (Stmt statement : statements){
             resolve(statement);
@@ -102,5 +114,15 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void>{
         }
 
         // Not found. Assume it is global.
+    }
+
+    private void resolveFunction(Stmt.Function function){
+        beginScope();
+        for (Token param : function.params){
+            declare(param);
+            define(param);
+        }
+        resolve(function.body);
+        endScope();
     }
 }
