@@ -48,6 +48,13 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void>{
         return null;
     }
 
+    @Override
+    public Void visitAssignExpr(Expr.Assign expr){
+        resolve(expr.value);  // resolve the expression for the assigned value in case it also contains references to the variable.
+        resolveLocal(expr, expr.name);  // resolve the variable being assigned to.
+        return null;
+    }
+
     void resolve(List<Stmt> statements){
         for (Stmt statement : statements){
             resolve(statement);
