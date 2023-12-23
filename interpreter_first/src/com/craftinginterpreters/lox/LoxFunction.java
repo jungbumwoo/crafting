@@ -4,7 +4,11 @@ import java.util.List;
 
 class LoxFunction implements LoxCallable {
    private final Stmt.Function declaration;
-   LoxFunction(Stmt.Function declaration) {
+
+   // This data sructure is called a "closure" because it "closes over" and hold onto the surrounding variables where the function is declared.
+   private final Environment closure;
+   LoxFunction(Stmt.Function declaration, Environment closure) {
+      this.closure = closure;
       this.declaration = declaration;
    }
 
