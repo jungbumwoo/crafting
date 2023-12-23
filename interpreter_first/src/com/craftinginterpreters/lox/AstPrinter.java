@@ -20,6 +20,13 @@ public class AstPrinter implements Expr.Visitor<String>{
     }
 
     @Override
+    public String visitCallExpr(Expr.Call expr) {
+        System.out.println("not implemented visitCallExpr");
+        System.exit(1);
+        return null;
+    }
+
+    @Override
     public String visitGroupingExpr(Expr.Grouping expr) {
         return parenthesize("group", expr.expression);
     }
