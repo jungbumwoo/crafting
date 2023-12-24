@@ -52,12 +52,28 @@ public class Lox {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
 
+        // the parser produces the syntax tree
         Parser parser = new Parser(tokens);
         List<Stmt> statements = parser.parse();
 
         // Stop if there was a syntax error.
         if (hadError) return;
 
+        /*
+        * After the parser produces the syntax tree, but before the interpreter starts executing it,
+        * Do a single walk over the tree to resolve all the variables it contains.
+        *
+        * If Lox had static types, we could slide a type checker in there.
+        *
+        * * Our variable resolutioin pass works like a sort of mini-interpreter.
+        * It walks the tree, visiting each node, but a static analysis is different from a dynamic execution.
+        * 1. There are no side effect. - Doesn't print anything
+        * 2. There is no control flow. Loops are only visited once. Both branches are visited in if statements.
+        * */
+        Resolver resolver = new Resolver(interpreter);
+        resolver.resolve(statements);
+
+        // start execute the syntax tree
         interpreter.interpret(statements);
     }
 

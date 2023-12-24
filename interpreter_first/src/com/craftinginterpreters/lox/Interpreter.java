@@ -1,13 +1,16 @@
 package com.craftinginterpreters.lox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // Unlike expressions, statements produce no values. so return type of the visitor methods is Void.
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
     final Environment globals = new Environment();
     private Environment environment = globals;
+    private final Map<Expr, Integer> locals = new HashMap<>();
 
     Interpreter(){
         globals.define("clock", new LoxCallable(){
@@ -79,9 +82,19 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
         return null;
     }
 
+    // Each time it visits a variable, it tells the interpreter how many socpes there are between the current scope and the scope where the variable was defined.
     @Override
     public Object visitVariableExpr(Expr.Variable expr){
-        return environment.get(expr.name);
+        return lookUpVariable(expr.name, expr);
+    }
+
+    private Object lookUpVariable(Token name, Expr expr){
+        Integer distance = locals.get(expr);
+        if (distance != null){
+            return environment.getAt(distance, name.lexeme);
+        } else {
+            return globals.get(name);
+        }
     }
 
     private void checkNumberOperand(Token operator, Object operand){
@@ -158,6 +171,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
     private void execute(Stmt stmt){
         stmt.accept(this);
+    }
+
+    void resolve(Expr expr, int depth){
+        locals.put(expr, depth);
     }
 
     @Override

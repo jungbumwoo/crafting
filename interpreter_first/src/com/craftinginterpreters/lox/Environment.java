@@ -8,12 +8,14 @@ public class Environment {
     final Environment enclosing;
     private final Map<String, Object> values = new HashMap<>();
 
+    // Constructor for global scope.
     Environment() {
         enclosing = null;
     }
 
+    // Constructor creates a new local scope nested inside the given outer one.
     Environment(Environment enclosing){
-        this.enclosing = enclosing;
+        this.enclosing = enclosing;  // outer scope
     }
 
     Object get(Token name){
@@ -46,5 +48,17 @@ public class Environment {
     // 변수 명(name) 에 변수 값(value) 설정
     void define(String name, Object value){
         values.put(name, value);
+    }
+
+    Environment ancestor(int distance){
+        Environment environment = this;
+        for (int i = 0; i < distance; i++){
+            environment = environment.enclosing;
+        }
+        return environment;
+    }
+
+    Object getAt(int distance, String name){
+        return ancestor(distance).values.get(name);
     }
 }
