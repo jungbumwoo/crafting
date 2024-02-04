@@ -8,7 +8,7 @@
     `if (a) var b = 1;` -> (X)
 <br></br>
 
-* ### `classDecl` -> "class" INDENTIFIER "{" function* "}" ;
+* ### `classDecl` -> "class" INDENTIFIER ( "<" IDENTIFIER ) ? "{" function* "}" ;
     * class: leading keyword
     * IDENTIFIER: class name
     * function*: methods
