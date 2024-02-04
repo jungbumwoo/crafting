@@ -35,6 +35,9 @@ class LoxFunction implements LoxCallable {
       } catch (Return returnValue) {
          return returnValue.value;
       }
+
+      if (isInitializer) return closure.getAt(0, "this");
+
       // If it never catches one of these exceptions, it means the function reached the end of its body without hitting a return statement.
       // In that case, it implicitly returns nil.
       return null;
