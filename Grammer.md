@@ -29,7 +29,7 @@
     * ( "=" expression )?: optional initializer expression.
 <br></br>
 
-* ### `primary` -> `"true"` | `"false"` | `"nil"` | NUMBER | STRING | "(" expression ")" ; | IDENTIFIER ;
+* ### `primary` -> `"true"` | `"false"` | `"nil"` | `"this"` | NUMBER | STRING | IDENTIFIER | "(" expression ")" ; | "super" "." IDENTIFIER ;
     * To access a variable, define a new kind of primary expression
     * STRING: string literal
     * "(" expression ")": grouping expression
