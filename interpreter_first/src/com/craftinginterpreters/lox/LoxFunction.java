@@ -7,7 +7,11 @@ class LoxFunction implements LoxCallable {
 
    // This data sructure is called a "closure" because it "closes over" and hold onto the surrounding variables where the function is declared.
    private final Environment closure;
-   LoxFunction(Stmt.Function declaration, Environment closure) {
+
+   private final boolean isInitializer;
+
+   LoxFunction(Stmt.Function declaration, Environment closure, boolean isInitializer) {
+      this.isInitializer = isInitializer;
       this.closure = closure;
       this.declaration = declaration;
    }
@@ -15,7 +19,7 @@ class LoxFunction implements LoxCallable {
    LoxFunction bind(LoxInstance instance) {
       Environment environment = new Environment(closure);
       environment.define("this", instance);
-      return new LoxFunction(declaration, environment);
+      return new LoxFunction(declaration, environment, isInitializer);
    }
 
    @Override
