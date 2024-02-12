@@ -7,4 +7,14 @@ typedef enum {
     OP_RETURN,  // this instruction will mean "return from the current func."
 } OpCode;
 
+typedef struct {
+    int count;
+    int capacity;
+
+    uint8_t* code;
+} Chunk;
+
+void initChunk(Chunk* chunk);
+void writeChunk(Chunk* chunk, uint8_t byte);
+
 #endif
