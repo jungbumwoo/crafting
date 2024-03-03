@@ -53,6 +53,13 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     숫자가 4자리보다 짧을 경우 왼쪽에 0으로 채웁니다.
     */
     printf("%04d ", offset);
+
+    if (offset > 0 && chunk->lines[offset] == chunk->lines[offset - 1]) {
+        // for any instruction that shares the same line as the previous one, we just print a vertical bar.
+        printf("   | ");
+    } else {
+        printf("%4d ", chunk->lines[offset]);
+    }
     
     uint8_t instruction = chunk->code[offset];
     switch (instruction) {
