@@ -32,6 +32,9 @@ void freeChunk(Chunk* chunk) {
 }
 
 int addConstant(Chunk* chunk, Value value) {
+    /*
+    @return: the index of the constant in the constants array
+    */
     writeValueArray(&chunk->constants, value);
     return chunk->constants.count - 1;
 }
