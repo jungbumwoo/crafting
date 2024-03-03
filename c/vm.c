@@ -6,15 +6,30 @@
 
 VM vm;
 
+static void resetStack() {
+    vm.stackTop = vm.stack;
+}
+
 void initVM() {
+    resetStack();
 };
 
 void freeVM() {
 };
 
+void push(Value value) {
+    *vm.stackTop = value;
+    vm.stackTop++;
+};
+
+Value pop() {
+    vm.stackTop--;
+    return *vm.stackTop;
+};
+
 static InterpreterResult run() {
 /*
- * Given a numeric opcode, we need to get to the right C code that implements that instruction's semantics.
+  * Given a numeric opcode, we need to get to the right C code that implements that instruction's semantics.
  * This process is called dispatching or decoding.
  *
  * for keep it simple, we'll use a switch statement to dispatch to the right code.
@@ -25,18 +40,28 @@ static InterpreterResult run() {
     printf("== start interpret == \n");
     for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
+        printf("              ");
+        for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
+            printf("[ ");
+            printValue(*slot);
+            printf(" ]");
+        }
+        printf("\n");
         disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
 #endif
         uint8_t instruction;
         switch (instruction = READ_BYTE()) {
             case OP_CONSTANT: {
                 // [opcode], [constant index] 라 switch 문에서 opcode를 읽었고,
-                Value constant = READ_CONSTANT(); // 그 다음 바이트를 읽어서 constant index로 사용
-                printValue(constant);
-                printf("\n");
+                Value constant = READ_CONSTANT(); // 그 다음 바이트를 읽어서 constant value를 가져옴
+                push(constant);
                 break;
             }
             case OP_RETURN: {
+                // for real func, have to change this.
+                // but for now, just print the value.
+                printValue(pop());
+                printf("\n");
                 return INTERPRET_OK;
 
             }
