@@ -5,10 +5,21 @@
 #include "value.h"
 
 typedef enum {
+    /*
+    OP_CONSTANT: opcode(1 byte), constant 'index'(1 bytes)
+
+    constant values in constants Array.
+    */
+    OP_CONSTANT,
     OP_RETURN,  // this instruction will mean "return from the current func."
 } OpCode;
 
 typedef struct {
+    /*
+    code: pointer to store some other data with instructions
+
+    ref: 14.3.1 Chunk
+    */
     int count;
     int capacity;
 
