@@ -30,6 +30,8 @@ replay_pid*
 # End of https://www.toptal.com/developers/gitignore/api/java
 
 .idea
+cmake-build-debug
+CMakeLists.txt
 .vscode
 
 c/main
