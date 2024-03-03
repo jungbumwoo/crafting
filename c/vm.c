@@ -57,6 +57,10 @@ static InterpreterResult run() {
                 push(constant);
                 break;
             }
+            case OP_NEGATE: {
+                push(-pop());
+                break;
+            }
             case OP_RETURN: {
                 // for real func, have to change this.
                 // but for now, just print the value.

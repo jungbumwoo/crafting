@@ -11,6 +11,7 @@ typedef enum {
     constant values in constants Array.
     */
     OP_CONSTANT,
+    OP_NEGATE,
     OP_RETURN,  // this instruction will mean "return from the current func."
 } OpCode;
 
