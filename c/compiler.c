@@ -13,6 +13,11 @@ typedef struct {
 } Parser;
 
 Parser parser;
+Chunk* compilingChunk;
+
+static Chunk* currentChunk() {
+    return compilingChunk;
+}
 
 static void errorAt(Token* token, const char* message) {
     if (parser.panicMode) return;
@@ -59,9 +64,31 @@ static void consume(TokenType type, const char* message) {
     errorAtCurrent(message);
 }
 
+static void emitByte(uint8_t byte) {
+    writeChunk(currentChunk(), byte, parser.previous.line);
+}
+
+static void emitBytes(uint8_t byte1, uint8_t byte2) {
+    emitByte(byte1);
+    emitByte(byte2);
+}
+
+static void emitReturn() {
+    /*
+     * When run clox, it will parse, compile, and execute a single expression, then print the result.
+     * To print that value, we are temporarily using the OP_RETURN instruction.
+     * */
+    emitByte(OP_RETURN);
+}
+
+static void endCompiler() {
+    emitReturn();
+}
+
 // Scan -> Parse -> Compile -> Interpret
 bool compile(const char* source, Chunk* chunk) {
     initScanner(source);
+    compilingChunk = chunk;
 
     parser.hadError = false;
     parser.panicMode = false;
@@ -69,5 +96,6 @@ bool compile(const char* source, Chunk* chunk) {
     advance();
     expression();
     consume(TOKEN_EOF, "Expect end of expression.");
+    endCompiler();
     return !parser.hadError;
 }
