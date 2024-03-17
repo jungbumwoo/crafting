@@ -12,6 +12,20 @@ typedef struct {
     bool panicMode;
 } Parser;
 
+typedef enum {
+    PREC_NONE,
+    PREC_ASSIGNMENT,  // =
+    PREC_OR,          // or
+    PREC_AND,         // and
+    PREC_EQUALITY,    // == !=
+    PREC_COMPARISON,  // < > <= >=
+    PREC_TERM,        // + -
+    PREC_FACTOR,      // * /
+    PREC_UNARY,       // ! -
+    PREC_CALL,        // . ()
+    PREC_PRIMARY
+} Precedence;
+
 Parser parser;
 Chunk* compilingChunk;
 
@@ -99,8 +113,12 @@ static void endCompiler() {
     emitReturn();
 }
 
+static void parsePrecedence(Precedence precedence) {
+
+}
+
 static void expression() {
-    // What goes here?
+    parsePrecedence(PREC_ASSIGNMENT);
 }
 
 static void grouping() {
@@ -110,10 +128,24 @@ static void grouping() {
 
 static void number() {
     /*
-     * strtod: 문자 스트링을 double, float 또는 long double 값으로 변환
+     * strtod: 문자 스트링을 double, float 또는 long double 값으로 변환.
      * */
     double value = strtod(parser.previous.start, NULL);
     emitConstant(value);
+}
+
+
+static void unary() {
+    TokenType operatorType = parser.previous.type;
+
+    // Compile the operand.
+    parsePrecedence(PREC_UNARY);
+
+    // Emit the operator instruction.
+    switch (operatorType) {
+        case TOKEN_MINUS: emitByte(OP_NEGATE); break;
+        default: return; // Unreachable.
+    }
 }
 
 // Scan -> Parse -> Compile -> Interpret
