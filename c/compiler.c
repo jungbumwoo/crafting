@@ -95,9 +95,17 @@ static void emitConstant(Value value) {
     emitBytes(OP_CONSTANT, makeConstant(value));
 }
 
-
 static void endCompiler() {
     emitReturn();
+}
+
+static void expression() {
+    // What goes here?
+}
+
+static void grouping() {
+    expression();
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 
 static void number() {
@@ -106,11 +114,6 @@ static void number() {
      * */
     double value = strtod(parser.previous.start, NULL);
     emitConstant(value);
-}
-
-static void expression() {
-    // What goes here?
-
 }
 
 // Scan -> Parse -> Compile -> Interpret
