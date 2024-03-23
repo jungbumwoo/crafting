@@ -26,6 +26,18 @@ typedef enum {
     PREC_PRIMARY
 } Precedence;
 
+typedef void (*ParseFn)(); // simple typedef for a function type that takes no arguments and returns nothing.
+
+typedef struct {
+    ParseFn prefix;
+    ParseFn infix;
+    Precedence precedence;
+} ParseRule;
+
+// ParseFn type is a simple typedef for a function type
+// that takes no arguments and returns nothing.
+typedef void (*ParseFn)();
+
 Parser parser;
 Chunk* compilingChunk;
 
@@ -113,6 +125,11 @@ static void endCompiler() {
     emitReturn();
 }
 
+// forward declaration
+static void expression();
+static ParseRule* getRule(TokenType type);
+static void parsePrecedence(Precedence precedence);
+
 static void parsePrecedence(Precedence precedence) {
 
 }
@@ -162,6 +179,59 @@ static void unary() {
         default: return; // Unreachable.
     }
 }
+
+/*
+ * given a token type, let us know how to parse it.
+ * let us find the prefix and infix parse functions for that token type.
+ * let us find ...
+ * the function that will parse the token when it appears at the beginning of an expression.
+ *
+ * the function to compile a prefix expression starting with a token of that type.
+ * the function to compile an infix expression whose left operand is followed by a token of that type
+ * the precedence of an infix expression that uses that token as an operator.
+ * */
+ParseRule rules[] = {
+        [TOKEN_LEFT_PAREN]    = {grouping, NULL, PREC_NONE},
+        [TOKEN_RIGHT_PAREN]   = {NULL, NULL, PREC_NONE},
+        [TOKEN_LEFT_BRACE]    = {NULL, NULL, PREC_NONE},
+        [TOKEN_RIGHT_BRACE]   = {NULL, NULL, PREC_NONE},
+        [TOKEN_COMMA]         = {NULL, NULL, PREC_NONE},
+        [TOKEN_DOT]           = {NULL, NULL, PREC_NONE},
+        [TOKEN_MINUS]         = {unary, binary, PREC_TERM},
+        [TOKEN_PLUS]          = {NULL, binary, PREC_TERM},
+        [TOKEN_SEMICOLON]     = {NULL, NULL, PREC_NONE},
+        [TOKEN_SLASH]         = {NULL, binary, PREC_FACTOR},
+        [TOKEN_STAR]          = {NULL, binary, PREC_FACTOR},
+        [TOKEN_BANG]          = {NULL, NULL, PREC_NONE},
+        [TOKEN_BANG_EQUAL]    = {NULL, NULL, PREC_NONE},
+        [TOKEN_EQUAL]         = {NULL, NULL, PREC_NONE},
+        [TOKEN_EQUAL_EQUAL]   = {NULL, NULL, PREC_NONE},
+        [TOKEN_GREATER]       = {NULL, NULL, PREC_NONE},
+        [TOKEN_GREATER_EQUAL] = {NULL, NULL, PREC_NONE},
+        [TOKEN_LESS]          = {NULL, NULL, PREC_NONE},
+        [TOKEN_LESS_EQUAL]    = {NULL, NULL, PREC_NONE},
+        [TOKEN_IDENTIFIER]    = {NULL, NULL, PREC_NONE},
+        [TOKEN_STRING]        = {NULL, NULL, PREC_NONE},
+        [TOKEN_NUMBER]        = {number, NULL, PREC_NONE},
+        [TOKEN_AND]           = {NULL, NULL, PREC_NONE},
+        [TOKEN_CLASS]         = {NULL, NULL, PREC_NONE},
+        [TOKEN_ELSE]          = {NULL, NULL, PREC_NONE},
+        [TOKEN_FALSE]         = {NULL, NULL, PREC_NONE},
+        [TOKEN_FOR]           = {NULL, NULL, PREC_NONE},
+        [TOKEN_FUN]           = {NULL, NULL, PREC_NONE},
+        [TOKEN_IF]            = {NULL, NULL, PREC_NONE},
+        [TOKEN_NIL]           = {NULL, NULL, PREC_NONE},
+        [TOKEN_OR]            = {NULL, NULL, PREC_NONE},
+        [TOKEN_PRINT]         = {NULL, NULL, PREC_NONE},
+        [TOKEN_RETURN]        = {NULL, NULL, PREC_NONE},
+        [TOKEN_SUPER]         = {NULL, NULL, PREC_NONE},
+        [TOKEN_THIS]          = {NULL, NULL, PREC_NONE},
+        [TOKEN_TRUE]          = {NULL, NULL, PREC_NONE},
+        [TOKEN_VAR]           = {NULL, NULL, PREC_NONE},
+        [TOKEN_WHILE]         = {NULL, NULL, PREC_NONE},
+        [TOKEN_ERROR]         = {NULL, NULL, PREC_NONE},
+        [TOKEN_EOF]           = {NULL, NULL, PREC_NONE},
+};
 
 // Scan -> Parse -> Compile -> Interpret
 bool compile(const char* source, Chunk* chunk) {
