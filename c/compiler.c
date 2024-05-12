@@ -74,13 +74,15 @@ static void advance() {
     parser.previous = parser.current;
 
     for (;;) {
-        parser.current = scanToken();
+        parser.current = scanToken();  // scanner doesn’t report lexical errors. Instead, it creates special error tokens and leaves it up to the parser to report them.
         if (parser.current.type != TOKEN_ERROR) break;
 
         errorAtCurrent(parser.current.start);
     }
 }
 
+// It's similar to advance() in that it reads the next token.
+// But it also validates that token has an expected type.
 static void consume(TokenType type, const char* message) {
     if (parser.current.type == type) {
         advance();
@@ -90,6 +92,8 @@ static void consume(TokenType type, const char* message) {
     errorAtCurrent(message);
 }
 
+// After we parse and understand a piece of the user’s program, the next step is 
+// to translate that to a series of bytecode instructions.
 static void emitByte(uint8_t byte) {
     writeChunk(currentChunk(), byte, parser.previous.line);
 }
@@ -136,6 +140,8 @@ static void parsePrecedence(Precedence precedence) {
     The first token is always going to belong tot some kind of prefix expression.
     It may turn out to be nested as an operand inside one or more infix expressions,
     but as you read the code from leftt to right, the first token you hit always belongs to a prefix expression.
+
+    ex) -a.b + c;
     */
     ParseFn prefixRule = getRule(parser.previous.type)->prefix;
     if (prefixRule == NULL) {
@@ -162,6 +168,17 @@ static void parsePrecedence(Precedence precedence) {
     }
 }
 
+/*
+When a prefix parser function is called, the leading token has already been
+consumed.
+An infix parser function is even more in medias res—the entire left-hand operand expression has already been compiled 
+and the subsequent infix operator consumed.
+
+When run, the VM will execute the left and right operand code, in that order,
+leaving their values on the stack. Then it executes the instruction for the
+operator. That pops the two values, computes the operation, and pushes the
+result.
+*/
 static void binary() {
     TokenType operatorType = parser.previous.type;
     ParseRule* rule = getRule(operatorType);
@@ -196,6 +213,10 @@ static void number() {
 
 
 static void unary() {
+    /*
+    The leading - token has been consumed and is sitting in parser.previous.
+    We grab the token type from that to note which unary operator we’re dealing with.
+    */
     TokenType operatorType = parser.previous.type;
 
     // Compile the operand.

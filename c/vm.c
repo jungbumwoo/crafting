@@ -89,6 +89,12 @@ static InterpreterResult run() {
 #undef BINARY_OP
 }
 
+/*
+create a new empty chunk and pass it over to the compiler. 
+The compiler will take the user’s program and fill up the chunk with bytecode.
+
+If it does encounter an error, compile() returns false and discard the unusable chunk.
+*/
 InterpreterResult interpret(const char* source) {
     Chunk chunk;
     initChunk(&chunk);

@@ -34,6 +34,10 @@ void freeChunk(Chunk* chunk) {
 int addConstant(Chunk* chunk, Value value) {
     /*
     @return: the index of the constant in the constants array
+
+    That adds the given value to the end of the chunk’s
+    constant table and returns its index. The new function’s job is mostly to make sure 
+    we don’t have too many constants.
     */
     writeValueArray(&chunk->constants, value);
     return chunk->constants.count - 1;
