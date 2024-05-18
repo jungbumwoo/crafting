@@ -219,7 +219,7 @@ static void number() {
      * strtod: 문자 스트링을 double, float 또는 long double 값으로 변환.
      * */
     double value = strtod(parser.previous.start, NULL);
-    emitConstant(value);
+    emitConstant(NUMBER_VAL(value));
 }
 
 
