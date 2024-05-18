@@ -60,7 +60,7 @@ static InterpreterResult run() {
  * */
 #define READ_BYTE() (*vm.ip++) // vm.ip 의 값을 읽고, 그 다음 값을 가리키도록 증가시킴
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
-#define BINARY_OP(ValueType, op) \
+#define BINARY_OP(valueType, op) \
     do { \
         if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
             runtimeError("Operands must be numbers."); \
@@ -107,7 +107,7 @@ static InterpreterResult run() {
                     runtimeError("Operand must be a number.");
                     return INTERPRET_RUNTIME_ERROR;
                 }
-                push(NUMBER_VALUE(-AS_NUMBER(pop())));
+                push(NUMBER_VAL(-AS_NUMBER(pop())));
                 break;
             }
             case OP_RETURN: {
