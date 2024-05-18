@@ -18,6 +18,7 @@ typedef enum {
     OP_SUBTRACT,
     OP_MULTIPLY,
     OP_DIVIDE,
+    OP_NOT,
     OP_NEGATE,
     OP_RETURN,  // this instruction will mean "return from the current func."
 } OpCode;
