@@ -123,7 +123,7 @@ static InterpreterResult run() {
                 printValue(pop());
                 printf("\n");
                 return INTERPRET_OK;
-
+                
             }
         }
     }
