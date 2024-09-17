@@ -47,7 +47,33 @@ static Entry* findEntry(Entry* entries, int capacity, ObjString* key) {
     }
 }
 
+static void adjustCapacity(Table* table, int capacity) {
+    // allocate new array to hold the new capacity
+    Entry* entries = ALLOCATE(Entry, capacity);
+    for (int i = 0; i < capacity; i++) {
+        entries[i].key = NULL;
+        entries[i].value = NIL_VAL;
+    }
+
+    // copy the existing entries into the new array.
+    for (int i = 0; i < table->capacity; i++) {
+        Entry* entry = &table->entries[i];
+        if (entry->key == NULL) continue;
+
+        // dest: new one, entry: existing one.
+        Entry* dest = findEntry(entries, capacity, entry->key);
+        dest->key = entry->key;
+        dest->value = entry->value;
+    }
+
+    FREE_ARRAY(Entry, table->entries, table->capacity);
+    table->entries = entries;
+    table->capacity = capacity;
+}
+
 bool tableSet(Table *table, ObjString* key, Value value) {
+
+    // make sure table is big enough to hold new key and value.
     if (table->count + 1  > table -> capacity * TABLE_MAX_LOAD) {
         int capacity = GROW_CAPACITY(table->capacity);
         adjustTableSize(table, capacity);
@@ -61,4 +87,14 @@ bool tableSet(Table *table, ObjString* key, Value value) {
     entry->key = key;
     entry->value = value;
     return isNewKey;
+}
+
+void tableAddAll(Table* from, Table* to) {
+    for (int i = 0; i < from->count; i++) {
+        Entry* entry = &from->entries[i];
+
+        if (entry->key != NULL) {
+            tableSet(to, entry->key, entry->value);
+        }
+    }
 }
