@@ -27,24 +27,39 @@ static Entry* findEntry(Entry* entries, int capacity, ObjString* key) {
     */
     
     uint32_t index = key->hash % capacity;
+    Entry* tombstone = NULL;
     for (;;) {
         Entry* entry = &entries[index];
 
-        if (entry->key == key || entry->key == NULL) {
-            /*
-            If we go past the end of the array, we're done.
-
-            If the key is NULL, then the bucket is empty.
-            If findEntry() to look up something in the hash table, this means it isn't there. 
-            If we're using it to insert, it means we've found a place to add it.
-            
-            return either insert something into it or read from it.
-            */
+        // [[something], [something], [tombstone], [somethong or tombstone], NULL] 인 경우 NULL 일 경우에
+        // tombstone을 반환해야함.
+        if (entry->key == NULL) {
+            if (IS_NIL(entry->value)) {
+                // Empty entry.
+                return tombstone != NULL ? tombstone : entry;
+            } else {
+                // We found a tombstone.
+                // 꼭 if 문 안쓰고 tombstone = entry 로 해도 될 것 같다?
+                // if 문을 써서 최초 발견 tomstone이 사용되네
+                if (tombstone == NULL) tombstone = entry;
+            }
+        } else if (entry->key == key) {
             return entry;
         }
 
         index = (index + 1) % capacity;
     }
+}
+
+bool tableGet(Table *table, ObjString* key, Value* value) {
+    // if exists, store the resulting value in the value output parameter.
+    if (table->count == 0) return false;
+
+    Entry *entry = findEntry(table->entries, table->capacity, key);
+    if (entry->key == NULL) return false;
+
+    *value = entry->value;
+    return true;
 }
 
 static void adjustCapacity(Table* table, int capacity) {
