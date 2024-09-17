@@ -11,6 +11,8 @@
 
 ObjString* copyString(const char* chars, int length) {
     uint32_t hash = hashString(chars, length);
+    ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
+    if (interned != NULL) return interned;
     
     char* heapChars = ALLOCATE(char, length + 1);
     memcpy(heapChars, chars, length);
@@ -24,6 +26,9 @@ static ObjString* allocateString(char* chars, int length, uint32_t hash) {
     string -> length = length;
     string -> chars = chars;
     string -> hash = hash;
+
+    tableSet(&vm.strings, string, NIL_VAL);
+
     return string;
 }
 
@@ -38,6 +43,15 @@ static uint32_t hashString(const char* key, int length) {
 
 ObjString* takeString(char* chars, int length) {
     uint32_t hash = hashString(chars, length);
+    ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
+
+    if (interned != NULL) {
+        // free the memory for the string that was passed in.
+        // Since ownership is passed to this function and we no longer need
+        // the duplicate string, it's up to us to free it.
+        FREE_ARRAY(char, chars, length + 1);
+        return interned;
+    }
     return allocateString(chars, length, hash);
 }
 
