@@ -191,6 +191,25 @@ static void parsePrecedence(Precedence precedence) {
     }
 }
 
+// takes the given token and adds its lexeme to the chunk's constant table as a string.
+// then, returns the index of that constant in the constant table.
+static uint8_t identifierConstant(Token* name) {
+    return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
+}
+
+static void defineVariable(uint8_t global) {
+    emitBytes(OP_DEFINE_GLOBAL, global);
+}
+
+static uint8_t parseVariable(const char* errorMessage) {
+    consume(TOKEN_IDENTIFIER, errorMessage);
+    return identifierConstant(&parser.previous);
+}
+
+static void defineVariable(uint8_t global) {
+    emitBytes(OP_DEFINE_GLOBAL, global);
+}
+
 /*
 When a prefix parser function is called, the leading token has already been
 consumed.
@@ -235,6 +254,25 @@ static void expression() {
     parsePrecedence(PREC_ASSIGNMENT);
 }
 
+static void varDeclaration() {
+    uint8_t global = parseVariable("Expect variable name.");
+
+    /* 
+    IF the user doesn't initialize the variable,
+    the compiler implicitly initializes it to nil by emitting an OP_NIL instruction.
+    ex) var a;
+    */
+    if (match(TOKEN_EQUAL)) {
+        expression();
+    } else {
+        emitByte(OP_NIL);
+    }
+
+    consume(TOKEN_SEMICOLON, "Expect ';' after variable declaration.");
+
+    defineVariable(global);
+}
+
 static void expressionStatement() {
     expression();
     consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
@@ -272,7 +310,11 @@ static void synchronize() {
 }
 
 static void declaration() {
-    statement();
+    if (match(TOKEN_VAR)) {
+        varDeclaration();
+    } else {
+        statement();
+    }
 
     if (parser.panicMode) sychronize();
 }
