@@ -96,6 +96,16 @@ static void consume(TokenType type, const char* message) {
     errorAtCurrent(message);
 }
 
+static bool check(TokenType type) {
+    return parser.current.type == type;
+}
+
+static bool match(TokenType type) {
+    if (!check(type)) return false;
+    advance();
+    return true;
+}
+
 // After we parse and understand a piece of the user’s program, the next step is 
 // to translate that to a series of bytecode instructions.
 static void emitByte(uint8_t byte) {
@@ -225,6 +235,12 @@ static void expression() {
     parsePrecedence(PREC_ASSIGNMENT);
 }
 
+static void printStatement() {
+    expression();
+    consume(TOKEN_SEMICOLON, "Expect ';' after value.");
+    emitByte(OP_PRINT);
+}
+
 static void declaration() {
     statement();
 }
@@ -338,7 +354,7 @@ bool compile(const char* source, Chunk* chunk) {
     parser.panicMode = false;
 
     advance();
-    
+
     while (!match(TOKEN_EOF)) {
         declaration();
     }
