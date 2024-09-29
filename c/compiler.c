@@ -30,7 +30,7 @@ typedef enum {
     PREC_PRIMARY
 } Precedence;
 
-typedef void (*ParseFn)(); // simple typedef for a function type that takes no arguments and returns nothing.
+typedef void (*ParseFn)(bool canAssign); // simple typedef for a function type that returns nothing.
 
 typedef struct {
     ParseFn prefix;
@@ -172,7 +172,14 @@ static void parsePrecedence(Precedence precedence) {
         return;
     }
 
-    prefixRule();
+    /* 파싱할 때 연산자 우선 순위를 비교.
+        할당(=)은 가장 낮은 우선순의를 갖고 항상 마지막에 일어나야함.
+        canAssign: 할당이 허용되는지
+        가능한 경우: ex) x = a + b;
+        불가능한 경우: ex) a + b = c; precedence 값이 높기에 +, *, . 등은 허용되지 않음 
+    */
+    bool canAssign = precedence <= PREC_ASSIGNMENT;
+    prefixRule(canAssign);
 
     /*
     17.6.1 Parsing with precedence
@@ -187,7 +194,13 @@ static void parsePrecedence(Precedence precedence) {
     while (precedence <= getRule(parser.current.type) -> precedence) {
         advance();
         ParseFn infixRule = getRule(parser.previous.type)->infix;
-        infixRule();
+        infixRule(canAssign);
+    }
+
+    // If the = doesn't get consumed as part of the expression, nothing else is going to consume it.
+    if (canAssign && match(TOKEN_EQUAL)) {
+        error("Invalid assignment target.");
+        expression();
     }
 }
 
@@ -221,7 +234,7 @@ leaving their values on the stack. Then it executes the instruction for the
 operator. That pops the two values, computes the operation, and pushes the
 result.
 */
-static void binary() {
+static void binary(bool canAssign) {
     TokenType operatorType = parser.previous.type;
     ParseRule* rule = getRule(operatorType);
     parsePrecedence((Precedence)(rule->precedence + 1));
@@ -241,7 +254,7 @@ static void binary() {
     }
 }
 
-static void literal() {
+static void literal(bool canAssign) {
     switch (parser.previous.type) {
         case TOKEN_FALSE: emitByte(OP_FALSE); break;
         case TOKEN_NIL: emitByte(OP_NIL); break;
@@ -327,12 +340,12 @@ static void statement() {
     }
 }
 
-static void grouping() {
+static void grouping(bool canAssign) {
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 
-static void number() {
+static void number(bool canAssign) {
     /*
      * strtod: 문자 스트링을 double, float 또는 long double 값으로 변환.
      * */
@@ -340,22 +353,31 @@ static void number() {
     emitConstant(NUMBER_VAL(value));
 }
 
-static void string() {
+static void string(bool canAssign) {
     // [0, length -1] 이 아닌 이유는 leading and trailing quotation mark 를 제거하기 위함.
     emitConstant(OBJ_VAL(copyString(
         parser.previous.start + 1, parser.previous.length - 2)));
 }
 
-static void namedVariable(Token name) {
+static void namedVariable(Token name, bool canAssign) {
     uint8_t arg = identifierConstant(&name);
+
+    // compiler가 '=' 이 있으면 setter, 없으면 getter로 구분
+    if (canAssign && match(TOKEN_EQUAL)) {
+        expression();
+        emitBytes(OP_SET_GLOBAL, arg);
+    } else {
+        emitBytes(OP_GET_GLOBAL, arg);
+    }
+
     emitBytes(OP_GET_GLOBAL, arg);
 }
 
-static void variable() {
-    namedVariable(parser.previous);
+static void variable(bool canAssign) {
+    namedVariable(parser.previous, canAssign);
 }
 
-static void unary() {
+static void unary(bool canAssign) {
     /*
     The leading - token has been consumed and is sitting in parser.previous.
     We grab the token type from that to note which unary operator we’re dealing with.
