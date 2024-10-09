@@ -123,6 +123,26 @@ static InterpreterResult run() {
             case OP_TRUE: push(BOOL_VAL(true)); break;
             case OP_FALSE: push(BOOL_VAL(false)); break;
             case OP_POP: pop(); break;
+            case OP_GET_LOCAL: {
+                // takes a single-byte operand for the stack slot where the local lives.
+                // It loads the value from that index and then pushes it on top of the stack.
+
+                // GET인데 왜 push 인가? - 값을 가져와서 stack에 push 해서 가져가 쓸 수 있도록 함. 
+                uint8_t slot = READ_BYTE();
+                push(vm.stack[slot]); // OP_SET_LOCAL에서 설정한 값
+                break;
+            }
+            /* 
+            It takes the assigned value from the top of the stack and stores in it the stack slot corresponding to the local variable.
+            it doesn't pop the value off the stack.
+            assignmet is an expression, and every expression produces a value.
+            The value of an assignment expression is the assigned value itself, so the VM just leaves the value on the stack.
+            */
+            case OP_SET_LOCAL: {
+                uint8_t slot = READ_BYTE();
+                vm.stack[slot] = peek(0);
+                break;
+            }
             case OP_GET_GLOBAL: {
                 ObjString* name = READ_STRING();
                 Value value;
