@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "common.h"
 #include "compiler.h"
@@ -39,7 +40,7 @@ typedef struct {
 } ParseRule;
 
 typedef struct {
-    Token token;
+    Token name;
     int depth; // zero is global scope, one is the first top-level block ..
 } Local;
 
@@ -178,6 +179,13 @@ static void beginScope() {
 
 static void endScope() {
     current->scopeDepth--;
+
+    // when a block ends, we need to put them to reset.
+    while (current -> localCount > 0 &&
+              current -> locals[current -> localCount - 1].depth > current -> scopeDepth) {
+          emitByte(OP_POP);
+          current -> localCount--;
+     }
 }
 
 // forward declaration
@@ -240,12 +248,71 @@ static uint8_t identifierConstant(Token* name) {
     return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
 }
 
+static bool identifiersEqual(Token* a, Token* b) {
+    if (a-> length != b-> length) return false;
+    return memcmp(a->start, b->start, a->length) == 0;
+}
+
+// stores the variable's name and the depth of the scope that owns the variable.
+static void addLocal(Token name) {
+    if (current->localCount == UINT8_COUNT) {
+        error("Too many local variables in function.");
+        return;
+    }
+
+    Local* local = &current->locals[current->localCount++];
+    local->name = name;
+    local->depth = current->scopeDepth; 
+}
+
+/*
+로컬 변수는 함수나 블록 내에서만 유효하므로, 컴파일러는 로컬 변수를 명확하게 추적 반면에, 전역 변수는 프로그램 전체에서 사용됨
+전역 변수는 '늦게 바인딩 late bound' - 전역 변수의 값이나 존재 여부가 프로그램 실행 중에 결정될 수 있다.
+컴파일 시점에 컴파일러가 전역 변수의 선언을 모두 알고 있을 필요가 없음.
+따라서 컴파일러는 전역 변수의 선언을 따로 추적하거나 관리하지 않고, 나중에 프로그램이 실행될 때 전역 변수를 찾음.
+*/
+static void declareVariable() {
+    if (current->scopeDepth == 0) return;
+
+    Token* name = &parser.previous;
+
+    // error to have two variables with the same name in the same local scope.
+    for (int i = current -> localCount - 1; i >= 0; i--) {
+        Local* local = &current->locals[i];
+        // local variable are appended to the array when they're declared,
+        // which means the current scope is always at the end of the array.
+        // 어차피 end of the array 비교인데 for loop을 사용해야하나?
+        if (local->depth != -1 && local->depth < current->scopeDepth) {
+            break;
+        }
+
+        if (identifiersEqual(name, &local->name)) {
+            error("Already a variable with this name in this scope.");
+        }
+    }
+
+    addLocal(*name);
+}
+
 static void defineVariable(uint8_t global) {
+    /* 
+    No code to create a local variable at runtime.
+    VM has already executed the code for variable's initializer, 
+    and that value is sitting right on top of the stack as the only remaining temporary.
+    */
+    if (current -> scopeDepth > 0) {
+        return;
+    }
+
     emitBytes(OP_DEFINE_GLOBAL, global);
 }
 
 static uint8_t parseVariable(const char* errorMessage) {
     consume(TOKEN_IDENTIFIER, errorMessage);
+
+    declareVariable();
+    if (current->scopeDepth > 0) return 0; // At runtime, locals aren't looked up by name.
+
     return identifierConstant(&parser.previous);
 }
 
