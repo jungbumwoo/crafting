@@ -38,11 +38,27 @@ typedef struct {
     Precedence precedence;
 } ParseRule;
 
+typedef struct {
+    Token token;
+    int depth; // zero is global scope, one is the first top-level block ..
+} Local;
+
+typedef struct {
+    /* 
+        In jlox, used a linked chain of "environment" HashMaps to track which local variables were currently in scope.
+        For clox, a little closer to the metal.
+    */
+    Local locals[UINT8_COUNT];
+    int localCount;
+    int scopeDepth;
+} Compiler;
+
 // ParseFn type is a simple typedef for a function type
 // that takes no arguments and returns nothing.
 typedef void (*ParseFn)();
 
 Parser parser;
+Compiler* current = NULL;
 Chunk* compilingChunk;
 
 static Chunk* currentChunk() {
@@ -137,6 +153,12 @@ static uint8_t makeConstant(Value value) {
 
 static void emitConstant(Value value) {
     emitBytes(OP_CONSTANT, makeConstant(value));
+}
+
+static void initCompiler(Compiler* compiler) {
+    compiler->localCount = 0;
+    compiler->scopeDepth = 0;
+    current = compiler;
 }
 
 static void endCompiler() {
@@ -455,6 +477,8 @@ static ParseRule* getRule(TokenType type) {
 // Scan -> Parse -> Compile -> Interpret
 bool compile(const char* source, Chunk* chunk) {
     initScanner(source);
+    Compiler compiler;
+    initCompiler(&compiler);
     compilingChunk = chunk;
 
     parser.hadError = false;
