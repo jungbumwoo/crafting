@@ -83,6 +83,15 @@ static InterpreterResult run() {
  * */
 #define READ_BYTE() (*vm.ip++) // vm.ip 의 값을 읽고, 그 다음 값을 가리키도록 증가시킴
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
+
+/* 
+    yanks the next two bytes from the chunk and builds a 16-bit unsigned integer소
+    ip - 메모리 주소
+    16비트로 만들기 위해 첫 번째 8비트를 왼쪽으로 8비트 이동시키고, 두 번째 8비트를 더함.
+*/
+#define READ_SHORT() \
+    (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
+
 /*
     reads a one-byte operand from the bytecode chunk.
     It treats that as an index into the chunk's constant table and returns the string at that index.
@@ -206,6 +215,11 @@ static InterpreterResult run() {
             case OP_PRINT: {
                 printValue(pop());
                 printf("\n");
+                break;
+            }
+            case OP_JUMP_IF_FALSE: {
+                uint16_t offset = READ_SHORT();
+                if (isFalsey(peek(0))) vm.ip += offset;
                 break;
             }
             case OP_RETURN: {

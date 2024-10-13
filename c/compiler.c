@@ -134,6 +134,13 @@ static void emitBytes(uint8_t byte1, uint8_t byte2) {
     emitByte(byte2);
 }
 
+static int emitJump(uint8_t instruction) {
+    emitByte(instruction);  // emits a bytecode instruction and writes a placeholder operand for jump offset.
+    emitByte(0xff);  // use two bytes for the jump offset operand. A 16-bit offset jump over up to 65,535 bytes.
+    emitByte(0xff);
+    return currentChunk()->count - 2;
+}
+
 static void emitReturn() {
     /*
      * When run clox, it will parse, compile, and execute a single expression, then print the result.
@@ -154,6 +161,23 @@ static uint8_t makeConstant(Value value) {
 
 static void emitConstant(Value value) {
     emitBytes(OP_CONSTANT, makeConstant(value));
+}
+
+static void patchJump(int offset) {
+    // goes back into the bytecode and replaces the operand at the given location.
+    // param: offset -> how far to jump.
+    // if condition is false, we need to jump over the code.
+
+    // currentChunk()->count: number of bytecode in current chunk
+    int jump = currentChunk()->count - offset - 2;  // -2 to adjust for the bytecode for the jump offset itself.
+
+    if (jump > UINT16_MAX) {
+        error("Too much code to jump over.");
+    }
+
+    // 바이트 코드에 jump 값(16비트)을 두 8비트에 기록
+    currentChunk()->code[offset] = (jump >> 8) & 0xff;
+    currentChunk()->code[offset + 1] = jump & 0xff;
 }
 
 static void initCompiler(Compiler* compiler) {
@@ -432,6 +456,17 @@ static void expressionStatement() {
     emitByte(OP_POP);
 }
 
+static void ifStatement() {
+    consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.)");
+    expression();
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+
+    int thenJump = emitJump(OP_JUMP_IF_FALSE);
+    statement();
+
+    patchJump(thenJump);
+}
+
 static void printStatement() {
     expression();
     consume(TOKEN_SEMICOLON, "Expect ';' after value.");
@@ -476,6 +511,8 @@ static void declaration() {
 static void statement() {
     if (match(TOKEN_PRINT)) {
         printStatement();
+    } else if (match(TOKEN_IF)) {
+        ifStatement();
     } else if (match(TOKEN_LEFT_BRACE)) {
         beginScope();
         block();
