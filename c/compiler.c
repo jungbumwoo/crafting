@@ -485,6 +485,62 @@ static void expressionStatement() {
     emitByte(OP_POP);
 }
 
+static void forStatement() {
+    beginScope();
+    consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for').");
+    if (match(TOKEN_SEMICOLON)) {
+        // No initializer.
+    } else if (match(TOKEN_VAR)) {
+        varDeclaration();
+    } else {
+        expressionStatement();
+    }
+
+    int loopStart = currentChunk()->count;
+    
+    int exitJump = -1;
+    if (!match(TOKEN_SEMICOLON)) { // clause is optional, we need to see if it's actually present.
+        expression();
+        consume(TOKEN_SEMICOLON, "Expect ';' after loop condition.");
+
+        // Jump out of the loop if the condition is false.
+        exitJump = emitJump(OP_JUMP_IF_FALSE);
+        emitByte(OP_POP); // pop condition value
+    }
+
+    /*
+    23.4.3 Increment clause.
+    Optional clause.
+
+    */
+    if (!match(TOKEN_RIGHT_PAREN)) {
+        int bodyJump = emitJump(OP_JUMP);
+        int incrementStart = currentChunk()->count;
+        expression();
+        emitByte(OP_POP);
+        consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        emitLoop(loopStart); // go back to main top loop. happens agian right after the increment clause. since the increment executes at the end of each loop iteration.
+        loopStart = incrementStart; // change loopStart to point to the offset where the increment expression begins.
+        patchJump(bodyJump);
+    }
+
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
+
+    statement();
+    emitLoop(loopStart); // after execute body, go back to increment expression
+
+    // After the loop body, we need to patch that jump.
+    // do this only when there is a condition clause. 
+    // If there isn't, there's no jump to patch and no condition value on the stack to pop.
+    if (exitJump != -1) {
+        patchJump(exitJump);
+        emitByte(OP_POP); // pop Condition value.
+    }
+
+    endScope();
+}
+
 /*
     - condition expression
         (1) OP_JUMP_IF_FALSE -> false 이면 (4) 로 이동
@@ -582,6 +638,8 @@ static void declaration() {
 static void statement() {
     if (match(TOKEN_PRINT)) {
         printStatement();
+    } else if (match(TOKEN_FOR)){
+        forStatement();
     } else if (match(TOKEN_IF)) {
         ifStatement();
     } else if (match(TOKEN_WHILE)){
