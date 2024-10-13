@@ -456,15 +456,33 @@ static void expressionStatement() {
     emitByte(OP_POP);
 }
 
+/*
+    - condition expression
+        (1) OP_JUMP_IF_FALSE -> false 이면 (4) 로 이동
+        (2) OP_POP: 조건 결과 stack에서 제거
+    - then branch statement
+        (3) OP_JUMP -> true 였었을 때 (5)로 이동
+        (4) OP_POP: 조건 결과 stack에서 제거
+    - else branch statement
+        (5) continue..
+
+    위를 다 compile 해둠
+*/
 static void ifStatement() {
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.)");
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
 
     int thenJump = emitJump(OP_JUMP_IF_FALSE);
-    statement();
+    emitByte(OP_POP); // (2)
+    statement(); // then branch statement
 
+    int elseJump = emitJump(OP_JUMP); // (3)
     patchJump(thenJump);
+    emitByte(OP_POP); // (4)
+
+    if (match(TOKEN_ELSE)) statement();
+    patchJump(elseJump);
 }
 
 static void printStatement() {
