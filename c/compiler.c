@@ -380,6 +380,23 @@ static void defineVariable(uint8_t global) {
 }
 
 /*
+    - left operand expression
+        - OP_JUMP_IF_FALSE
+        - OP_POP
+    - right operand expression
+*/
+static void and_(bool canAssign) {
+    int endJump = emitJump(OP_JUMP_IF_FALSE);
+
+    emitByte(OP_POP);
+    parsePrecedence(PREC_AND); // 오른쪽 연산자 평가
+    
+    // 조건부 점프 명령어의 목적지를 수정하여, 점프할 위치를 바이트코드에서 정확하게 설정. 
+    // 조건이 거짓일 경우 점프할 위치를 지정하여 바이트코드의 흐름을 제어
+    patchJump(endJump);  
+}
+
+/*
 When a prefix parser function is called, the leading token has already been
 consumed.
 An infix parser function is even more in medias res—the entire left-hand operand expression has already been compiled 
@@ -553,6 +570,17 @@ static void number(bool canAssign) {
     emitConstant(NUMBER_VAL(value));
 }
 
+static void or_(bool canAssign) {
+    int elseJump = emitJump(OP_JUMP_IF_FALSE);
+    int endJump = emitJump(OP_JUMP);
+
+    patchJump(elseJump);
+    emitByte(OP_POP);
+
+    parsePrecedence(PREC_OR);
+    patchJump(endJump);
+}
+
 static void string(bool canAssign) {
     // [0, length -1] 이 아닌 이유는 leading and trailing quotation mark 를 제거하기 위함.
     emitConstant(OBJ_VAL(copyString(
@@ -638,7 +666,7 @@ ParseRule rules[] = {
         [TOKEN_IDENTIFIER]    = {variable, NULL, PREC_NONE},
         [TOKEN_STRING]        = {string, NULL, PREC_NONE},
         [TOKEN_NUMBER]        = {number, NULL, PREC_NONE},
-        [TOKEN_AND]           = {NULL, NULL, PREC_NONE},
+        [TOKEN_AND]           = {NULL, and_, PREC_AND},
         [TOKEN_CLASS]         = {NULL, NULL, PREC_NONE},
         [TOKEN_ELSE]          = {NULL, NULL, PREC_NONE},
         [TOKEN_FALSE]         = {literal, NULL, PREC_NONE},
@@ -646,7 +674,7 @@ ParseRule rules[] = {
         [TOKEN_FUN]           = {NULL, NULL, PREC_NONE},
         [TOKEN_IF]            = {NULL, NULL, PREC_NONE},
         [TOKEN_NIL]           = {literal, NULL, PREC_NONE},
-        [TOKEN_OR]            = {NULL, NULL, PREC_NONE},
+        [TOKEN_OR]            = {NULL, or_, PREC_OR},
         [TOKEN_PRINT]         = {NULL, NULL, PREC_NONE},
         [TOKEN_RETURN]        = {NULL, NULL, PREC_NONE},
         [TOKEN_SUPER]         = {NULL, NULL, PREC_NONE},
